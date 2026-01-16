@@ -51,7 +51,7 @@
         {
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
-              nixfmt-rfc-style
+              nixfmt
               yamllint
               jq
             ];
@@ -61,7 +61,7 @@
 
       # フォーマッター
       formatter = flake-utils.lib.eachDefaultSystemMap (system:
-        nixpkgs.legacyPackages.${system}.nixfmt-rfc-style
+        nixpkgs.legacyPackages.${system}.nixfmt
       );
     };
 }
