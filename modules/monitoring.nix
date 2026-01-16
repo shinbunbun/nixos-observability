@@ -316,34 +316,37 @@ in
   };
 
   config = mkIf cfg.enable {
-    # Prometheus設定
-    services.prometheus = mkIf cfg.prometheus.enable {
-      enable = true;
-      port = cfg.prometheus.port;
-      retentionTime = "${toString cfg.prometheus.retentionDays}d";
+    # Prometheus設定（メインサービスとエクスポーターを統合）
+    services.prometheus = mkMerge [
+      (mkIf cfg.prometheus.enable {
+        enable = true;
+        port = cfg.prometheus.port;
+        retentionTime = "${toString cfg.prometheus.retentionDays}d";
 
-      globalConfig = {
-        scrape_interval = cfg.prometheus.scrapeInterval;
-        evaluation_interval = cfg.prometheus.evaluationInterval;
-      };
+        globalConfig = {
+          scrape_interval = cfg.prometheus.scrapeInterval;
+          evaluation_interval = cfg.prometheus.evaluationInterval;
+        };
 
-      scrapeConfigs = cfg.prometheus.scrapeConfigs;
-    };
+        scrapeConfigs = cfg.prometheus.scrapeConfigs;
+      })
+      {
+        # Node Exporter設定
+        exporters.node = mkIf cfg.nodeExporter.enable {
+          enable = true;
+          port = cfg.nodeExporter.port;
+          enabledCollectors = cfg.nodeExporter.enabledCollectors;
+          extraFlags = cfg.nodeExporter.extraFlags;
+        };
 
-    # Node Exporter設定
-    services.prometheus.exporters.node = mkIf cfg.nodeExporter.enable {
-      enable = true;
-      port = cfg.nodeExporter.port;
-      enabledCollectors = cfg.nodeExporter.enabledCollectors;
-      extraFlags = cfg.nodeExporter.extraFlags;
-    };
-
-    # SNMP Exporter設定
-    services.prometheus.exporters.snmp = mkIf cfg.snmpExporter.enable {
-      enable = true;
-      port = cfg.snmpExporter.port;
-      configurationPath = mkIf (cfg.snmpExporter.configFile != null) cfg.snmpExporter.configFile;
-    };
+        # SNMP Exporter設定
+        exporters.snmp = mkIf cfg.snmpExporter.enable {
+          enable = true;
+          port = cfg.snmpExporter.port;
+          configurationPath = mkIf (cfg.snmpExporter.configFile != null) cfg.snmpExporter.configFile;
+        };
+      }
+    ];
 
     # Grafana設定
     services.grafana = mkIf cfg.grafana.enable {
