@@ -10,13 +10,13 @@
     {
       # NixOS モジュールのエクスポート
       nixosModules = {
-        # 個別モジュール（後で追加）
-        # monitoring = ./modules/monitoring.nix;
-        # alertmanager = ./modules/alertmanager.nix;
-        # loki = ./modules/loki.nix;
-        # fluentBit = ./modules/fluent-bit.nix;
-        # opensearch = ./modules/opensearch.nix;
-        # opensearchDashboards = ./modules/opensearch-dashboards.nix;
+        # 個別モジュール
+        monitoring = ./modules/monitoring.nix;
+        # alertmanager = ./modules/alertmanager.nix;  # Phase 3で追加
+        # loki = ./modules/loki.nix;                  # Phase 4で追加
+        # fluentBit = ./modules/fluent-bit.nix;       # Phase 4で追加
+        # opensearch = ./modules/opensearch.nix;      # Phase 5で追加
+        # opensearchDashboards = ./modules/opensearch-dashboards.nix;  # Phase 5で追加
 
         # すべてのモジュールを含むデフォルト
         default = ./modules/default.nix;
@@ -25,8 +25,8 @@
       # ダッシュボードやアセットへのパス
       assets = {
         dashboards = ./assets/dashboards;
-        # lokiRules = ./assets/loki-rules.yaml;  # 後で追加
-        # snmpConfig = ./assets/snmp.yml;        # 後で追加
+        snmpConfig = ./assets/snmp.yml;
+        # lokiRules = ./assets/loki-rules.yaml;  # Phase 4で追加
       };
 
       # バリデーション用パッケージ (CI/CD用)
