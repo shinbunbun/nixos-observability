@@ -98,6 +98,9 @@ in
         # ログアクセス権限
         SupplementaryGroups = [ "systemd-journal" ];
 
+        # 特権ポート（<1024）へのバインド許可
+        AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
+
         # リソース制限
         MemoryMax = "512M";
         CPUQuota = "100%";
