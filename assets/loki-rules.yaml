@@ -32,7 +32,7 @@ groups:
       - alert: ErrorLogDetected
         expr: |
           sum(count_over_time({job="systemd-journal", service!~"loki|grafana-start|docker-opensearch-dashboards-start", level="error"} [1m])) by (host) > 0
-        for: 1m
+        for: 0s
         labels:
           severity: warning
         annotations:
@@ -247,7 +247,7 @@ groups:
       - alert: RouterOSErrorLogDetected
         expr: |
           sum(count_over_time({job="routeros", severity=~"error|critical"} [1m])) by (host) > 0
-        for: 1m
+        for: 0s
         labels:
           severity: warning
         annotations:
