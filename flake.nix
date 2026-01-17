@@ -13,7 +13,7 @@
         # 個別モジュール
         monitoring = ./modules/monitoring.nix;
         alertmanager = ./modules/alertmanager.nix;
-        # loki = ./modules/loki.nix;                  # Phase 4で追加
+        loki = ./modules/loki.nix;
         # fluentBit = ./modules/fluent-bit.nix;       # Phase 4で追加
         # opensearch = ./modules/opensearch.nix;      # Phase 5で追加
         # opensearchDashboards = ./modules/opensearch-dashboards.nix;  # Phase 5で追加
@@ -26,7 +26,7 @@
       assets = {
         dashboards = ./assets/dashboards;
         snmpConfig = ./assets/snmp.yml;
-        # lokiRules = ./assets/loki-rules.yaml;  # Phase 4で追加
+        lokiRules = ./assets/loki-rules.yaml;
       };
 
       # バリデーション用パッケージ (CI/CD用)
