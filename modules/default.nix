@@ -1,5 +1,10 @@
 # すべてのモジュールをインポート
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   imports = [
     ./monitoring.nix
