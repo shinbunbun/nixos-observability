@@ -16,7 +16,7 @@
         loki = ./modules/loki.nix;
         opensearch = ./modules/opensearch.nix;
         opensearchDashboards = ./modules/opensearch-dashboards.nix;
-        # fluentBit = ./modules/fluent-bit.nix;       # 最後に追加
+        fluentBit = ./modules/fluent-bit.nix;
 
         # すべてのモジュールを含むデフォルト
         default = ./modules/default.nix;

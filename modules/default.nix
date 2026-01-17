@@ -7,6 +7,6 @@
     ./loki.nix
     ./opensearch.nix
     ./opensearch-dashboards.nix
-    # ./fluent-bit.nix              # 最後に追加
+    ./fluent-bit.nix
   ];
 }
