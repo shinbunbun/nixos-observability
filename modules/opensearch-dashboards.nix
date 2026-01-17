@@ -84,7 +84,7 @@ in
 
         environment = {
           OPENSEARCH_HOSTS = cfg.opensearchUrl;
-          DISABLE_SECURITY_DASHBOARDS_PLUGIN = toString (!cfg.enableSecurity);
+          DISABLE_SECURITY_DASHBOARDS_PLUGIN = if cfg.enableSecurity then "false" else "true";
           SERVER_HOST = "0.0.0.0";
           SERVER_NAME = cfg.serverName;
           LOGGING_VERBOSE = "false";
