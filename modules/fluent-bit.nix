@@ -117,9 +117,7 @@ in
     users.groups.fluent-bit = { };
 
     # ファイアウォール設定
-    networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall (
-      [ cfg.port ] ++ cfg.firewallPorts
-    );
+    networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall ([ cfg.port ] ++ cfg.firewallPorts);
 
     networking.firewall.allowedUDPPorts = mkIf cfg.openFirewall cfg.firewallPorts;
 

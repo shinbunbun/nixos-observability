@@ -350,15 +350,14 @@ in
       enable = true;
 
       settings = {
-        server =
-          {
-            http_addr = "127.0.0.1";
-            http_port = cfg.grafana.port;
-          }
-          // optionalAttrs (cfg.grafana.domain != null) {
-            domain = cfg.grafana.domain;
-            root_url = "https://${cfg.grafana.domain}";
-          };
+        server = {
+          http_addr = "127.0.0.1";
+          http_port = cfg.grafana.port;
+        }
+        // optionalAttrs (cfg.grafana.domain != null) {
+          domain = cfg.grafana.domain;
+          root_url = "https://${cfg.grafana.domain}";
+        };
 
         security = {
           admin_user = cfg.grafana.adminUser;
@@ -379,7 +378,9 @@ in
           auth_url = mkIf (cfg.grafana.oauth.authUrl != null) cfg.grafana.oauth.authUrl;
           token_url = mkIf (cfg.grafana.oauth.tokenUrl != null) cfg.grafana.oauth.tokenUrl;
           api_url = mkIf (cfg.grafana.oauth.apiUrl != null) cfg.grafana.oauth.apiUrl;
-          role_attribute_path = mkIf (cfg.grafana.oauth.roleAttributePath != null) cfg.grafana.oauth.roleAttributePath;
+          role_attribute_path = mkIf (
+            cfg.grafana.oauth.roleAttributePath != null
+          ) cfg.grafana.oauth.roleAttributePath;
           auto_login = cfg.grafana.oauth.autoLogin;
         };
 
@@ -412,27 +413,29 @@ in
             };
           });
 
-        dashboards.settings.providers = mkIf (cfg.grafana.dashboards.enable && cfg.grafana.dashboards.path != null) [
-          {
-            name = "observability";
-            orgId = 1;
-            folder = "";
-            type = "file";
-            disableDeletion = false;
-            updateIntervalSeconds = 10;
-            allowUiUpdates = true;
-            options.path = cfg.grafana.dashboards.path;
-          }
-        ];
+        dashboards.settings.providers =
+          mkIf (cfg.grafana.dashboards.enable && cfg.grafana.dashboards.path != null)
+            [
+              {
+                name = "observability";
+                orgId = 1;
+                folder = "";
+                type = "file";
+                disableDeletion = false;
+                updateIntervalSeconds = 10;
+                allowUiUpdates = true;
+                options.path = cfg.grafana.dashboards.path;
+              }
+            ];
       };
     };
 
     # Grafana用の環境変数設定（OAuth）
-    systemd.services.grafana.serviceConfig = mkIf (
-      cfg.grafana.enable && cfg.grafana.oauth.enable && cfg.grafana.oauth.environmentFile != null
-    ) {
-      EnvironmentFile = [ cfg.grafana.oauth.environmentFile ];
-    };
+    systemd.services.grafana.serviceConfig =
+      mkIf (cfg.grafana.enable && cfg.grafana.oauth.enable && cfg.grafana.oauth.environmentFile != null)
+        {
+          EnvironmentFile = [ cfg.grafana.oauth.environmentFile ];
+        };
 
     # ファイアウォール設定
     networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall (

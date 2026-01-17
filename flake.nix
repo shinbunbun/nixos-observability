@@ -6,7 +6,12 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+    }:
     {
       # NixOS モジュールのエクスポート
       nixosModules = {
@@ -22,15 +27,9 @@
         default = ./modules/default.nix;
       };
 
-      # ダッシュボードやアセットへのパス
-      assets = {
-        dashboards = ./assets/dashboards;
-        snmpConfig = ./assets/snmp.yml;
-        lokiRules = ./assets/loki-rules.yaml;
-      };
-
       # バリデーション用パッケージ (CI/CD用)
-      packages = flake-utils.lib.eachDefaultSystemMap (system:
+      packages = flake-utils.lib.eachDefaultSystemMap (
+        system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
         in
@@ -44,14 +43,15 @@
       );
 
       # 開発シェル
-      devShells = flake-utils.lib.eachDefaultSystemMap (system:
+      devShells = flake-utils.lib.eachDefaultSystemMap (
+        system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
         in
         {
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
-              nixfmt
+              nixfmt-tree
               yamllint
               jq
             ];
@@ -60,8 +60,8 @@
       );
 
       # フォーマッター
-      formatter = flake-utils.lib.eachDefaultSystemMap (system:
-        nixpkgs.legacyPackages.${system}.nixfmt
+      formatter = flake-utils.lib.eachDefaultSystemMap (
+        system: nixpkgs.legacyPackages.${system}.nixfmt-tree
       );
     };
 }
