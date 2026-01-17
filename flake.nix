@@ -12,7 +12,7 @@
       nixosModules = {
         # 個別モジュール
         monitoring = ./modules/monitoring.nix;
-        # alertmanager = ./modules/alertmanager.nix;  # Phase 3で追加
+        alertmanager = ./modules/alertmanager.nix;
         # loki = ./modules/loki.nix;                  # Phase 4で追加
         # fluentBit = ./modules/fluent-bit.nix;       # Phase 4で追加
         # opensearch = ./modules/opensearch.nix;      # Phase 5で追加
