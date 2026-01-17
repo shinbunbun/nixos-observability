@@ -5,8 +5,8 @@
     ./monitoring.nix
     ./alertmanager.nix
     ./loki.nix
-    # ./fluent-bit.nix              # Phase 4で追加
-    # ./opensearch.nix              # Phase 5で追加
-    # ./opensearch-dashboards.nix   # Phase 5で追加
+    ./opensearch.nix
+    ./opensearch-dashboards.nix
+    # ./fluent-bit.nix              # 最後に追加
   ];
 }

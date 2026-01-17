@@ -14,9 +14,9 @@
         monitoring = ./modules/monitoring.nix;
         alertmanager = ./modules/alertmanager.nix;
         loki = ./modules/loki.nix;
-        # fluentBit = ./modules/fluent-bit.nix;       # Phase 4で追加
-        # opensearch = ./modules/opensearch.nix;      # Phase 5で追加
-        # opensearchDashboards = ./modules/opensearch-dashboards.nix;  # Phase 5で追加
+        opensearch = ./modules/opensearch.nix;
+        opensearchDashboards = ./modules/opensearch-dashboards.nix;
+        # fluentBit = ./modules/fluent-bit.nix;       # 最後に追加
 
         # すべてのモジュールを含むデフォルト
         default = ./modules/default.nix;
