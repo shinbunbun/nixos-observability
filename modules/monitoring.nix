@@ -63,6 +63,13 @@ in
           See https://prometheus.io/docs/prometheus/latest/configuration/configuration/#scrape_config
         '';
       };
+
+      externalUrl = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "External URL for Prometheus (used in alert notifications)";
+        example = "https://grafana.example.com";
+      };
     };
 
     # Node Exporter設定
@@ -321,6 +328,7 @@ in
       enable = mkIf cfg.prometheus.enable true;
       port = cfg.prometheus.port;
       retentionTime = "${toString cfg.prometheus.retentionDays}d";
+      webExternalUrl = mkIf (cfg.prometheus.externalUrl != null) cfg.prometheus.externalUrl;
 
       globalConfig = {
         scrape_interval = cfg.prometheus.scrapeInterval;

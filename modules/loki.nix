@@ -108,6 +108,13 @@ in
       default = true;
       description = "Open firewall ports for Loki";
     };
+
+    externalUrl = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = "External URL for Loki ruler (used in alert notifications)";
+      example = "https://grafana.example.com";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -192,17 +199,20 @@ in
           delete_request_store = "filesystem";
         };
 
-        ruler = mkIf (cfg.alertmanagerUrl != null) {
-          storage = {
-            type = "local";
-            local.directory = "${cfg.dataDir}/rules";
-          };
-          rule_path = "${cfg.dataDir}/rules-temp";
-          alertmanager_url = cfg.alertmanagerUrl;
-          ring.kvstore.store = "inmemory";
-          enable_api = true;
-          enable_alertmanager_v2 = true;
-        };
+        ruler = mkIf (cfg.alertmanagerUrl != null) (
+          {
+            storage = {
+              type = "local";
+              local.directory = "${cfg.dataDir}/rules";
+            };
+            rule_path = "${cfg.dataDir}/rules-temp";
+            alertmanager_url = cfg.alertmanagerUrl;
+            ring.kvstore.store = "inmemory";
+            enable_api = true;
+            enable_alertmanager_v2 = true;
+          }
+          // optionalAttrs (cfg.externalUrl != null) { external_url = cfg.externalUrl; }
+        );
 
         query_range.results_cache.cache = {
           embedded_cache = {
