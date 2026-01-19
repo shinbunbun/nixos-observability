@@ -138,6 +138,13 @@ in
       default = true;
       description = "Open firewall port for Alertmanager";
     };
+
+    externalUrl = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = "External URL for Alertmanager (used in notifications)";
+      example = "https://grafana.example.com";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -146,6 +153,7 @@ in
       enable = true;
       port = cfg.port;
       checkConfig = cfg.checkConfig;
+      webExternalUrl = mkIf (cfg.externalUrl != null) cfg.externalUrl;
 
       configuration = {
         global = {
