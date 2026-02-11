@@ -1,0 +1,39 @@
+name: Nix CI
+
+on: [push]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  format-check:
+    uses: shinbunbun/nix-ci-workflows/.github/workflows/format-check.yaml@main
+
+  discover-targets:
+    uses: shinbunbun/nix-ci-workflows/.github/workflows/discover-targets.yaml@main
+
+  build-packages-linux:
+    needs: [format-check, discover-targets]
+    if: needs.discover-targets.outputs.has-linux-packages == 'true'
+    strategy:
+      matrix: ${{ fromJSON(needs.discover-targets.outputs.linux-packages-matrix) }}
+    uses: shinbunbun/nix-ci-workflows/.github/workflows/build-nix.yaml@main
+    with:
+      runner: ubuntu-latest
+      build-target: ".#packages.x86_64-linux.${{ matrix.package }}"
+      result-name: "pkg-${{ matrix.package }}"
+      push-to-cache: true
+    secrets:
+      ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
+
+  build-devshell:
+    needs: format-check
+    uses: shinbunbun/nix-ci-workflows/.github/workflows/build-nix.yaml@main
+    with:
+      runner: ubuntu-latest
+      build-target: ".#devShells.x86_64-linux.default"
+      result-name: devshell
+      push-to-cache: true
+    secrets:
+      ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
