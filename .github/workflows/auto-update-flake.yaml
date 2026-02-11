@@ -1,0 +1,12 @@
+name: Auto Update Flakes
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    uses: shinbunbun/nix-ci-workflows/.github/workflows/auto-update-flake.yaml@main
+    secrets:
+      PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
