@@ -182,6 +182,16 @@ in
         description = "Disable Grafana analytics and update checks";
       };
 
+      secretKeyFile = mkOption {
+        type = types.nullOr types.path;
+        default = null;
+        description = ''
+          Path to file containing Grafana secret key.
+          Used for signing cookies and other internal security operations.
+          Referenced via Grafana's $__file{path} provider syntax.
+        '';
+      };
+
       # OAuth設定
       oauth = {
         enable = mkOption {
@@ -323,6 +333,13 @@ in
   };
 
   config = mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = cfg.grafana.enable -> cfg.grafana.secretKeyFile != null;
+        message = "services.observability.monitoring.grafana.secretKeyFile must be set when Grafana is enabled.";
+      }
+    ];
+
     # Prometheus設定（メインサービスとエクスポーター）
     services.prometheus = {
       enable = mkIf cfg.prometheus.enable true;
@@ -371,6 +388,7 @@ in
           admin_user = cfg.grafana.adminUser;
           admin_password = cfg.grafana.adminPassword;
           disable_initial_admin_creation = false;
+          secret_key = "$__file{${cfg.grafana.secretKeyFile}}";
         };
 
         "auth.anonymous".enabled = false;
