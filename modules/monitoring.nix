@@ -363,9 +363,11 @@ in
 
       scrapeConfigs = cfg.prometheus.scrapeConfigs;
 
-      # Recording Rules
-      rules = mkIf (cfg.prometheus.recordingRules != [ ]) [
-        (builtins.toJSON { groups = cfg.prometheus.recordingRules; })
+      # Recording Rules（別ファイルとして生成。rules は alertmanager.nix と結合されて壊れるため ruleFiles を使用）
+      ruleFiles = mkIf (cfg.prometheus.recordingRules != [ ]) [
+        (pkgs.writeText "recording-rules.json" (
+          builtins.toJSON { groups = cfg.prometheus.recordingRules; }
+        ))
       ];
 
       # Node Exporter設定
