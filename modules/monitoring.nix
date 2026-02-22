@@ -64,6 +64,15 @@ in
         '';
       };
 
+      recordingRules = mkOption {
+        type = types.listOf types.attrs;
+        default = [ ];
+        description = ''
+          Prometheus recording rule groups.
+          Each element should be an attrset with 'name', 'interval', and 'rules'.
+        '';
+      };
+
       externalUrl = mkOption {
         type = types.nullOr types.str;
         default = null;
@@ -353,6 +362,11 @@ in
       };
 
       scrapeConfigs = cfg.prometheus.scrapeConfigs;
+
+      # Recording Rules
+      rules = mkIf (cfg.prometheus.recordingRules != [ ]) [
+        (builtins.toJSON { groups = cfg.prometheus.recordingRules; })
+      ];
 
       # Node Exporter設定
       exporters.node = mkIf cfg.nodeExporter.enable {
