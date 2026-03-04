@@ -51,7 +51,7 @@ let
           job.type = "keyword";
           log_type.type = "keyword";
           method.type = "keyword";
-          status.type = "short";
+          status.type = "keyword";
           trace_id.type = "keyword";
         };
       };
