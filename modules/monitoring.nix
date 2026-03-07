@@ -440,6 +440,7 @@ in
           (optional cfg.datasources.prometheus.enable {
             name = "Prometheus";
             type = "prometheus";
+            uid = "prometheus";
             access = "proxy";
             url = cfg.datasources.prometheus.url;
             jsonData.timeInterval = cfg.prometheus.scrapeInterval;
@@ -448,6 +449,7 @@ in
           ++ (optional cfg.datasources.loki.enable {
             name = "Loki";
             type = "loki";
+            uid = "loki";
             access = "proxy";
             url = cfg.datasources.loki.url;
             jsonData = {
