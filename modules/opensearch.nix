@@ -21,42 +21,6 @@ with lib;
 let
   cfg = config.services.observability.opensearch;
 
-  # デフォルトのインデックステンプレート
-  defaultIndexTemplate = {
-    index_patterns = [ "logs-*" ];
-    template = {
-      settings = {
-        number_of_shards = cfg.numberOfShards;
-        number_of_replicas = cfg.numberOfReplicas;
-        "index.refresh_interval" = "5s";
-        "index.codec" = "best_compression";
-      };
-      mappings = {
-        properties = {
-          "@timestamp".type = "date";
-          level = {
-            type = "keyword";
-            fields.text.type = "text";
-          };
-          message = {
-            type = "text";
-            fields.keyword = {
-              type = "keyword";
-              ignore_above = 256;
-            };
-          };
-          host.type = "keyword";
-          service.type = "keyword";
-          unit.type = "keyword";
-          job.type = "keyword";
-          log_type.type = "keyword";
-          method.type = "keyword";
-          status.type = "keyword";
-          trace_id.type = "keyword";
-        };
-      };
-    };
-  };
 in
 {
   options.services.observability.opensearch = {
@@ -108,12 +72,6 @@ in
       type = types.ints.unsigned;
       default = 0;
       description = "Default number of replicas for indices";
-    };
-
-    indexTemplate = mkOption {
-      type = types.attrs;
-      default = defaultIndexTemplate;
-      description = "Index template for logs-* indices";
     };
 
     enableSecurity = mkOption {
@@ -196,11 +154,6 @@ in
           echo "Waiting for OpenSearch to start... ($i/60)"
           sleep 5
         done
-
-        # インデックステンプレート登録
-        ${pkgs.curl}/bin/curl -X PUT "http://localhost:${toString cfg.port}/_index_template/logs-template" \
-          -H "Content-Type: application/json" \
-          -d '${builtins.toJSON cfg.indexTemplate}' || true
 
         echo "OpenSearch initialization completed"
       '';
