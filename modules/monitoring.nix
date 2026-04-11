@@ -6,8 +6,6 @@
   - Node Exporter: システムメトリクスの公開
   - SNMP Exporter: ネットワークデバイス監視（MikroTik RouterOS）
 
-  可視化（Grafana）は k3s クラスタ上にホストされているため、本モジュールでは
-  メトリクス収集側のみを提供します。
 */
 {
   config,
