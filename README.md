@@ -3,7 +3,6 @@
 A comprehensive observability solution for NixOS, including:
 
 - **Prometheus** - Metrics collection and storage
-- **Grafana** - Metrics visualization
 - **Alertmanager** - Alert management with Discord notifications
 - **Loki** - Log aggregation
 - **Fluent Bit** - Log collection
@@ -11,10 +10,13 @@ A comprehensive observability solution for NixOS, including:
 - **Node Exporter** - System metrics
 - **SNMP Exporter** - Network device monitoring (MikroTik RouterOS)
 
+Visualization (Grafana) is intentionally not included — it is expected to be
+hosted externally (e.g. on Kubernetes) and to consume the data sources exposed
+by this stack.
+
 ## Features
 
 - 🚀 Easy setup with NixOS Flakes
-- 📊 Pre-configured Grafana dashboards
 - 🔔 Discord alert notifications
 - 🔒 SOPS-compatible secret management
 - 📦 Modular architecture - enable only what you need
@@ -46,14 +48,10 @@ A comprehensive observability solution for NixOS, including:
 ```nix
 {
   services.observability = {
-    # Monitoring stack
+    # Monitoring stack (Prometheus, Node Exporter, SNMP Exporter)
     monitoring = {
       enable = true;
       prometheus.port = 9090;
-      grafana = {
-        domain = "grafana.example.com";
-        dashboards.path = inputs.nixos-observability.assets.dashboards;
-      };
     };
 
     # Alertmanager with your alert rules
@@ -92,7 +90,7 @@ See [examples/](examples/) directory for complete configuration examples.
 
 All modules are fully functional and ready for production use:
 
-- ✅ **monitoring** - Prometheus, Grafana, Node Exporter, SNMP Exporter
+- ✅ **monitoring** - Prometheus, Node Exporter, SNMP Exporter
 - ✅ **alertmanager** - Alert management with Discord notifications
 - ✅ **loki** - Log aggregation and search
 - ✅ **opensearch** - Advanced log search and analysis
@@ -134,14 +132,6 @@ Then inject them via options:
 ```nix
 services.observability.alertmanager.alertRules = import ./observability-config/alert-rules.nix;
 ```
-
-## Assets
-
-Pre-configured assets are provided for convenience:
-
-- `assets/dashboards/` - Grafana dashboards (system, RouterOS, logs)
-- `assets/lokiRules` - Sample Loki alert rules
-- `assets/snmpConfig` - SNMP Exporter config for MikroTik RouterOS
 
 ## License
 
