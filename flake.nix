@@ -1,5 +1,5 @@
 {
-  description = "NixOS Observability Stack - Prometheus, Grafana, Loki, Alertmanager, OpenSearch";
+  description = "NixOS Observability Stack - Prometheus, Loki, Alertmanager, OpenSearch";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
