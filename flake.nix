@@ -1,5 +1,5 @@
 {
-  description = "NixOS Observability Stack - Prometheus, Loki, Alertmanager, OpenSearch";
+  description = "NixOS Observability Stack - Node Exporter, Loki, OpenSearch";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -17,7 +17,6 @@
       nixosModules = {
         # 個別モジュール
         monitoring = ./modules/monitoring.nix;
-        alertmanager = ./modules/alertmanager.nix;
         loki = ./modules/loki.nix;
         opensearch = ./modules/opensearch.nix;
         opensearchDashboards = ./modules/opensearch-dashboards.nix;
