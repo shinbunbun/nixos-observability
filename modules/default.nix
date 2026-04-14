@@ -8,7 +8,6 @@
 {
   imports = [
     ./monitoring.nix
-    ./alertmanager.nix
     ./loki.nix
     ./opensearch.nix
     ./opensearch-dashboards.nix
