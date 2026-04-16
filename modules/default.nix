@@ -8,7 +8,6 @@
 {
   imports = [
     ./monitoring.nix
-    ./loki.nix
     ./opensearch.nix
     ./opensearch-dashboards.nix
     ./fluent-bit.nix
