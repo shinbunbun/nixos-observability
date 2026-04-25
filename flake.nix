@@ -1,5 +1,5 @@
 {
-  description = "NixOS Observability Stack - Node Exporter, OpenSearch";
+  description = "NixOS Observability Stack - Node Exporter, Fluent Bit";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -17,8 +17,6 @@
       nixosModules = {
         # 個別モジュール
         monitoring = ./modules/monitoring.nix;
-        opensearch = ./modules/opensearch.nix;
-        opensearchDashboards = ./modules/opensearch-dashboards.nix;
         fluentBit = ./modules/fluent-bit.nix;
 
         # すべてのモジュールを含むデフォルト

@@ -8,8 +8,6 @@
 {
   imports = [
     ./monitoring.nix
-    ./opensearch.nix
-    ./opensearch-dashboards.nix
     ./fluent-bit.nix
   ];
 }

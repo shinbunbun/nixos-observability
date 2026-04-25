@@ -6,7 +6,6 @@ A comprehensive observability solution for NixOS, including:
 - **Alertmanager** - Alert management with Discord notifications
 - **Loki** - Log aggregation
 - **Fluent Bit** - Log collection
-- **OpenSearch** - Log search and analysis
 - **Node Exporter** - System metrics
 - **SNMP Exporter** - Network device monitoring (MikroTik RouterOS)
 
@@ -93,8 +92,6 @@ All modules are fully functional and ready for production use:
 - ✅ **monitoring** - Prometheus, Node Exporter, SNMP Exporter
 - ✅ **alertmanager** - Alert management with Discord notifications
 - ✅ **loki** - Log aggregation and search
-- ✅ **opensearch** - Advanced log search and analysis
-- ✅ **opensearchDashboards** - Log visualization UI (Docker)
 - ✅ **fluentBit** - Lightweight log collection agent
 
 ## Architecture

@@ -5,7 +5,7 @@
   - Fluent Bit: 軽量高速なログ収集・転送エージェント
   - 設定ファイルの柔軟な管理
   - systemd-journalやsyslogからのログ収集
-  - LokiやOpenSearchへの送信
+  - LokiやVectorへの送信
 
   使用方法:
   - 設定ファイルを用意して configFile option で指定
