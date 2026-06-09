@@ -7,6 +7,7 @@ A comprehensive observability solution for NixOS, including:
 - **Loki** - Log aggregation
 - **Fluent Bit** - Log collection
 - **Node Exporter** - System metrics
+- **Process Exporter** - Per-process CPU/memory metrics (top-like view)
 - **SNMP Exporter** - Network device monitoring (MikroTik RouterOS)
 
 Visualization (Grafana) is intentionally not included — it is expected to be
@@ -47,10 +48,11 @@ by this stack.
 ```nix
 {
   services.observability = {
-    # Monitoring stack (Prometheus, Node Exporter, SNMP Exporter)
+    # Exporters (Node Exporter, Process Exporter) — scraped by an external Prometheus/VMAgent
     monitoring = {
       enable = true;
-      prometheus.port = 9090;
+      nodeExporter.enable = true;     # host-wide metrics (port 9100)
+      processExporter.enable = true;  # per-process metrics (port 9256)
     };
 
     # Alertmanager with your alert rules
@@ -89,7 +91,7 @@ See [examples/](examples/) directory for complete configuration examples.
 
 All modules are fully functional and ready for production use:
 
-- ✅ **monitoring** - Prometheus, Node Exporter, SNMP Exporter
+- ✅ **monitoring** - Node Exporter, Process Exporter
 - ✅ **alertmanager** - Alert management with Discord notifications
 - ✅ **loki** - Log aggregation and search
 - ✅ **fluentBit** - Lightweight log collection agent
