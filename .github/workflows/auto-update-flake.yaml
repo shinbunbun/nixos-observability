@@ -5,6 +5,14 @@ on:
     - cron: "0 4 * * *"
   workflow_dispatch:
 
+# 上流 reusable workflow (nix-ci-workflows/auto-update-flake.yaml) が
+# contents/pull-requests: write を要求する。リポジトリの default workflow token
+# 権限が read-only のため、caller 側で明示しないと startup_failure になる
+# (nixos-observability-config #59 と同じ修正)。
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   update:
     uses: shinbunbun/nix-ci-workflows/.github/workflows/auto-update-flake.yaml@main
