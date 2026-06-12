@@ -84,7 +84,7 @@ Fluent Bit ログ収集エージェントを管理するモジュール。
 | `fluentBit.enable` | bool | false | モジュール全体の有効化 |
 | `fluentBit.configFile` | path | (必須) | Fluent Bit 設定ファイルのパス |
 | `fluentBit.package` | package | `pkgs.fluent-bit` | 使用する Fluent Bit パッケージ |
-| `fluentBit.port` | port | 2020 | Fluent Bit HTTP メトリクスサーバーのポート |
+| `fluentBit.port` | port | 2020 | HTTP メトリクス firewall ポート (openFirewall 専用、Fluent Bit 本体には渡らない。configFile の [SERVICE] HTTP_Port と一致させること) |
 | `fluentBit.dataDir` | str | `/var/lib/fluent-bit` | データ保存ディレクトリ |
 | `fluentBit.extraPackages` | list | [] | Fluent Bit から利用可能にする追加パッケージ |
 | `fluentBit.openFirewall` | bool | false | Fluent Bit ポートをファイアウォールで開放 |
