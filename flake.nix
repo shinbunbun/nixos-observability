@@ -1,5 +1,5 @@
 {
-  description = "NixOS Observability Stack - Node Exporter, Fluent Bit";
+  description = "NixOS Observability Stack - Node Exporter, Process Exporter, Fluent Bit";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";

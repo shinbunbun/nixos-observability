@@ -20,8 +20,8 @@ git checkout -b feature/your-feature-name origin/main
 ## 検証手順
 
 ```bash
-# Nix 評価レベルの確認 (フルビルドは CI に任せる)
-nix flake check
+# validate-configs を実際に評価する (flake check は checks output が存在しないため packages を指定する)
+nix build .#packages.x86_64-linux.validate-configs
 ```
 
 ## スコープ外
