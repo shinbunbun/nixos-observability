@@ -43,13 +43,26 @@ in
     port = mkOption {
       type = types.port;
       default = 2020;
-      description = "HTTP server port for Fluent Bit metrics";
+      description = ''
+        Fluent Bit HTTP メトリクスポート (firewall 開放専用)。
+
+        この値は openFirewall = true のとき firewall を開けるためだけに
+        使われ、Fluent Bit 本体には渡らない。実際に listen する HTTP
+        ポートは configFile 内の [SERVICE] HTTP_Port で設定すること。
+        両者を一致させるのは利用者の責任。
+      '';
     };
 
     dataDir = mkOption {
       type = types.str;
       default = "/var/lib/fluent-bit";
-      description = "Directory for Fluent Bit data storage";
+      description = ''
+        Fluent Bit のデータ保存ディレクトリ。
+
+        systemd の StateDirectory として使われるため /var/lib/ 配下で
+        ある必要がある (StateDirectory は /var/lib からの相対名のみ受け付ける)。
+        実ディレクトリは systemd が作成・管理する。
+      '';
     };
 
     extraPackages = mkOption {
@@ -74,6 +87,15 @@ in
   };
 
   config = mkIf cfg.enable {
+    # dataDir は systemd StateDirectory (= /var/lib 配下の相対名) として
+    # 使うため /var/lib/ 配下であることを保証する。
+    assertions = [
+      {
+        assertion = hasPrefix "/var/lib/" cfg.dataDir;
+        message = "services.observability.fluentBit.dataDir は /var/lib/ 配下のパスである必要があります (現在値: ${cfg.dataDir})。systemd StateDirectory が /var/lib からの相対名のみを受け付けるためです。";
+      }
+    ];
+
     # Fluent Bit systemd service
     systemd.services.fluent-bit = {
       description = "Fluent Bit Log Processor";
@@ -92,7 +114,9 @@ in
         Group = "fluent-bit";
 
         # ディレクトリ設定
-        StateDirectory = "fluent-bit";
+        # StateDirectory は /var/lib からの相対名なので dataDir の basename を使う。
+        # 既定 dataDir = /var/lib/fluent-bit のとき basename = "fluent-bit"。
+        StateDirectory = baseNameOf cfg.dataDir;
         StateDirectoryMode = "0750";
 
         # ログアクセス権限
