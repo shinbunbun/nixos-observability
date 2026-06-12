@@ -33,79 +33,111 @@
       #
       # NixOS モジュールの評価なので Linux システムに限定する
       # (darwin で nixosSystem を評価すると unsupported system エラーになる)。
-      packages = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ] (
+      #
+      # system カバレッジは x86_64-linux のみに絞る。消費側の NixOS ホスト
+      # (dotfiles の homeMachine/g3pro、dotfiles-private の nixos-desktop) は
+      # すべて x86_64-linux であり、aarch64-linux ターゲットは存在しない。
+      # CI (.github/workflows/ci.yaml) も x86_64-linux しかビルドしないため、
+      # packages 宣言を x86_64-linux のみに揃えて「宣言と CI が一致」させる。
+      # 将来 aarch64-linux ホストを追加する際は、この genAttrs のリストに
+      # "aarch64-linux" を戻し、CI 側にも aarch64 ビルド job を追加する。
+      packages = nixpkgs.lib.genAttrs [ "x86_64-linux" ] (
         system:
         let
-          # monitoring (nodeExporter + processExporter) と
-          # fluentBit (configFile 注入) の両方を有効化した最小システム。
-          evalSystem = nixpkgs.lib.nixosSystem {
-            inherit system;
-            modules = [
-              self.nixosModules.monitoring
-              self.nixosModules.fluentBit
-              (
-                { pkgs, ... }:
-                {
-                  # 評価に必要な最小限のシステム設定
-                  boot.loader.grub.enable = false;
-                  fileSystems."/" = {
-                    device = "/dev/disk/by-label/nixos";
-                    fsType = "ext4";
-                  };
-                  system.stateVersion = "24.11";
-
-                  # monitoring: nodeExporter + processExporter を両方有効化
-                  services.observability.monitoring = {
-                    enable = true;
-                    nodeExporter.enable = true;
-                    processExporter = {
-                      enable = true;
-                      # processNames の submodule 型を実証する代表値。
-                      # 既定 (name + cmdline) に加え comm / exe フィールドも
-                      # 受理されることを評価レベルで検証する。
-                      processNames = [
-                        {
-                          name = "{{.Comm}}";
-                          cmdline = [ ".+" ];
-                        }
-                        {
-                          name = "sshd";
-                          comm = [ "sshd" ];
-                        }
-                        {
-                          name = "node-exporter";
-                          exe = [ "/run/current-system/sw/bin/node_exporter" ];
-                        }
-                      ];
-                    };
-                  };
-
-                  # fluentBit: configFile を注入して評価
-                  services.observability.fluentBit = {
-                    enable = true;
-                    configFile = pkgs.writeText "fluent-bit.conf" ''
-                      [SERVICE]
-                          Flush 1
-                          Log_Level info
-
-                      [INPUT]
-                          Name dummy
-
-                      [OUTPUT]
-                          Name stdout
-                          Match *
-                    '';
-                  };
-                }
-              )
-            ];
+          # 評価に必要な最小限のシステム設定。各 validate-* パッケージで
+          # 共通利用する。
+          baseSystem = {
+            boot.loader.grub.enable = false;
+            fileSystems."/" = {
+              device = "/dev/disk/by-label/nixos";
+              fsType = "ext4";
+            };
+            system.stateVersion = "24.11";
           };
+
+          # monitoring (nodeExporter + processExporter) を有効化する設定。
+          monitoringConfig = {
+            services.observability.monitoring = {
+              enable = true;
+              nodeExporter.enable = true;
+              processExporter = {
+                enable = true;
+                # processNames の submodule 型を実証する代表値。
+                # 既定 (name + cmdline) に加え comm / exe フィールドも
+                # 受理されることを評価レベルで検証する。
+                processNames = [
+                  {
+                    name = "{{.Comm}}";
+                    cmdline = [ ".+" ];
+                  }
+                  {
+                    name = "sshd";
+                    comm = [ "sshd" ];
+                  }
+                  {
+                    name = "node-exporter";
+                    exe = [ "/run/current-system/sw/bin/node_exporter" ];
+                  }
+                ];
+              };
+            };
+          };
+
+          # fluentBit (configFile 注入) を有効化する設定。
+          fluentBitConfig =
+            { pkgs, ... }:
+            {
+              services.observability.fluentBit = {
+                enable = true;
+                configFile = pkgs.writeText "fluent-bit.conf" ''
+                  [SERVICE]
+                      Flush 1
+                      Log_Level info
+
+                  [INPUT]
+                      Name dummy
+
+                  [OUTPUT]
+                      Name stdout
+                      Match *
+                '';
+              };
+            };
+
+          # 指定モジュール + 設定の最小 NixOS システムを評価し toplevel を返す。
+          mkValidate =
+            modules:
+            (nixpkgs.lib.nixosSystem {
+              inherit system;
+              modules = [ baseSystem ] ++ modules;
+            }).config.system.build.toplevel;
         in
         {
           # モジュール評価バリデーション
-          # monitoring / fluentBit を import した最小 NixOS システムを
+          # monitoring / fluentBit の両方を import した最小 NixOS システムを
           # 評価し、その toplevel をビルドする。評価が通れば成功。
-          validate-configs = evalSystem.config.system.build.toplevel;
+          validate-configs = mkValidate [
+            self.nixosModules.monitoring
+            self.nixosModules.fluentBit
+            monitoringConfig
+            fluentBitConfig
+          ];
+
+          # monitoring モジュール単独有効化パス。
+          # fluentBit を import せず monitoring だけを評価し、
+          # 片方だけ有効化したときの conditional 評価を検証する。
+          validate-monitoring-only = mkValidate [
+            self.nixosModules.monitoring
+            monitoringConfig
+          ];
+
+          # fluentBit モジュール単独有効化パス。
+          # monitoring を import せず fluentBit だけを評価し、
+          # 片方だけ有効化したときの conditional 評価を検証する。
+          validate-fluentbit-only = mkValidate [
+            self.nixosModules.fluentBit
+            fluentBitConfig
+          ];
         }
       );
 
