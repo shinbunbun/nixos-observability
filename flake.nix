@@ -36,8 +36,6 @@
       packages = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ] (
         system:
         let
-          pkgs = nixpkgs.legacyPackages.${system};
-
           # monitoring (nodeExporter + processExporter) と
           # fluentBit (configFile 注入) の両方を有効化した最小システム。
           evalSystem = nixpkgs.lib.nixosSystem {
