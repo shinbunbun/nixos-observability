@@ -174,7 +174,13 @@ in
       (optional (cfg.openFirewall && cfg.nodeExporter.enable) cfg.nodeExporter.port)
       ++ (optional (cfg.openFirewall && cfg.processExporter.enable) cfg.processExporter.port);
 
-    # システムパッケージ
+    # システムパッケージ (CLI 診断用に意図的に PATH へ載せる)
+    #
+    # nixpkgs の services.prometheus.exporters.{node,process} モジュールは
+    # systemd service の ExecStart で store パスを直接叩くだけで、exporter
+    # バイナリを environment.systemPackages へは追加しない。そのため
+    # この行は重複ではなく、`node_exporter --help` 等を手元で実行して
+    # collector/flag を確認するための診断用に PATH へ載せる目的。
     environment.systemPackages =
       (optional cfg.nodeExporter.enable pkgs.prometheus-node-exporter)
       ++ (optional cfg.processExporter.enable pkgs.prometheus-process-exporter);

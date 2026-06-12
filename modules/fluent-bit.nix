@@ -59,9 +59,14 @@ in
       description = ''
         Fluent Bit のデータ保存ディレクトリ。
 
-        systemd の StateDirectory として使われるため /var/lib/ 配下で
-        ある必要がある (StateDirectory は /var/lib からの相対名のみ受け付ける)。
-        実ディレクトリは systemd が作成・管理する。
+        systemd の StateDirectory として使われるため /var/lib/ の
+        直下 (= /var/lib/<name> 形式) である必要がある。StateDirectory は
+        /var/lib からの相対名のみを受け付け、本モジュールは baseNameOf で
+        その相対名を導出するため、/var/lib/foo/bar のようなネストした
+        パスを渡すと StateDirectory = "bar" となり systemd が
+        /var/lib/bar を作成してしまう (意図とずれる)。これを防ぐため
+        assertion で直下のみを受理する。実ディレクトリは systemd が
+        作成・管理する。
       '';
     };
 
@@ -88,11 +93,16 @@ in
 
   config = mkIf cfg.enable {
     # dataDir は systemd StateDirectory (= /var/lib 配下の相対名) として
-    # 使うため /var/lib/ 配下であることを保証する。
+    # 使うため /var/lib/ の直下であることを保証する。
+    # StateDirectory は baseNameOf cfg.dataDir で導出するため、
+    # /var/lib/foo/bar のようなネストしたパスを許すと StateDirectory = "bar"
+    # となり systemd が /var/lib/bar を作成してしまい意図とずれる。
+    # そのため hasPrefix ではなく「正規化後が /var/lib/<basename> と一致する」
+    # ことを要求し、直下のみを受理する。
     assertions = [
       {
-        assertion = hasPrefix "/var/lib/" cfg.dataDir;
-        message = "services.observability.fluentBit.dataDir は /var/lib/ 配下のパスである必要があります (現在値: ${cfg.dataDir})。systemd StateDirectory が /var/lib からの相対名のみを受け付けるためです。";
+        assertion = cfg.dataDir == "/var/lib/" + baseNameOf cfg.dataDir;
+        message = "services.observability.fluentBit.dataDir は /var/lib/ の直下 (= /var/lib/<name> 形式) である必要があります (現在値: ${cfg.dataDir})。systemd StateDirectory が /var/lib からの相対名のみを受け付け、本モジュールは baseNameOf で相対名を導出するため、ネストしたパスを渡すと systemd が意図しないディレクトリを作成します。";
       }
     ];
 
