@@ -28,7 +28,7 @@ let
 in
 {
   options.services.observability.monitoring = {
-    enable = mkEnableOption "Node Exporter for system metrics";
+    enable = mkEnableOption "Node Exporter and Process Exporter for system and per-process metrics";
 
     # Node Exporter設定
     nodeExporter = {
@@ -117,7 +117,7 @@ in
     openFirewall = mkOption {
       type = types.bool;
       default = true;
-      description = "Open firewall port for Node Exporter";
+      description = "Open firewall ports for enabled exporters (Node Exporter and/or Process Exporter)";
     };
   };
 
