@@ -30,7 +30,10 @@
       # CI で検出できるようにする。echo するだけの stub ではなく、
       # 評価結果の config.system.build.toplevel を参照することで
       # モジュール評価が成功しないとビルドが失敗する。
-      packages = flake-utils.lib.eachDefaultSystemMap (
+      #
+      # NixOS モジュールの評価なので Linux システムに限定する
+      # (darwin で nixosSystem を評価すると unsupported system エラーになる)。
+      packages = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ] (
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
