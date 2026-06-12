@@ -58,7 +58,26 @@
                   services.observability.monitoring = {
                     enable = true;
                     nodeExporter.enable = true;
-                    processExporter.enable = true;
+                    processExporter = {
+                      enable = true;
+                      # processNames の submodule 型を実証する代表値。
+                      # 既定 (name + cmdline) に加え comm / exe フィールドも
+                      # 受理されることを評価レベルで検証する。
+                      processNames = [
+                        {
+                          name = "{{.Comm}}";
+                          cmdline = [ ".+" ];
+                        }
+                        {
+                          name = "sshd";
+                          comm = [ "sshd" ];
+                        }
+                        {
+                          name = "node-exporter";
+                          exe = [ "/run/current-system/sw/bin/node_exporter" ];
+                        }
+                      ];
+                    };
                   };
 
                   # fluentBit: configFile を注入して評価

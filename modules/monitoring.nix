@@ -93,7 +93,35 @@ in
       };
 
       processNames = mkOption {
-        type = types.listOf types.anything;
+        type = types.listOf (
+          types.submodule {
+            options = {
+              name = mkOption {
+                type = types.nullOr types.str;
+                default = null;
+                description = ''
+                  groupname テンプレート (例 "{{.Comm}}", "{{.ExeBase}}")。
+                  マッチしたプロセスをどの groupname ラベルに集約するか。
+                '';
+              };
+              comm = mkOption {
+                type = types.nullOr (types.listOf types.str);
+                default = null;
+                description = "実行ファイル名 (comm) のリストでマッチ。";
+              };
+              exe = mkOption {
+                type = types.nullOr (types.listOf types.str);
+                default = null;
+                description = "実行ファイルパス (exe) のリストでマッチ。";
+              };
+              cmdline = mkOption {
+                type = types.nullOr (types.listOf types.str);
+                default = null;
+                description = "コマンドライン全体に対する正規表現リストでマッチ。";
+              };
+            };
+          }
+        );
         default = [
           # 実行ファイル名 (comm) ごとに集約する。top の COMMAND 列に相当。
           # /nix/store パスは exe basename ではなく comm を使うことで剥がれる。
@@ -134,7 +162,11 @@ in
     services.prometheus.exporters.process = mkIf cfg.processExporter.enable {
       enable = true;
       port = cfg.processExporter.port;
-      settings.process_names = cfg.processExporter.processNames;
+      # submodule 化で未設定フィールドが null になるため、null を除いてから
+      # process_names に渡す (従来の types.anything 時と同一の YAML を生成する)。
+      settings.process_names = map (
+        entry: filterAttrs (_: v: v != null) entry
+      ) cfg.processExporter.processNames;
     };
 
     # ファイアウォール設定 (有効な exporter のポートだけ開放)
