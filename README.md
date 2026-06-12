@@ -1,30 +1,17 @@
 # NixOS Observability Stack
 
-A comprehensive observability solution for NixOS, including:
+NixOS ホスト上で稼働する観測可能性エージェントを管理するモジュール集。
+**メトリクス収集・アラート評価・ログ保存は外部スタック（k3s 上の VictoriaMetrics / Alloy 等）が担う**という
+policy-free 設計を採用しており、NixOS 側はスクレイプ対象の exporter とログ転送エージェントのみを提供する。
 
-- **Prometheus** - Metrics collection and storage
-- **Alertmanager** - Alert management with Discord notifications
-- **Loki** - Log aggregation
-- **Fluent Bit** - Log collection
-- **Node Exporter** - System metrics
-- **Process Exporter** - Per-process CPU/memory metrics (top-like view)
-- **SNMP Exporter** - Network device monitoring (MikroTik RouterOS)
+現在提供しているモジュール:
 
-Visualization (Grafana) is intentionally not included — it is expected to be
-hosted externally (e.g. on Kubernetes) and to consume the data sources exposed
-by this stack.
-
-## Features
-
-- 🚀 Easy setup with NixOS Flakes
-- 🔔 Discord alert notifications
-- 🔒 SOPS-compatible secret management
-- 📦 Modular architecture - enable only what you need
-- 🎨 Customizable configurations
+- **monitoring** - Node Exporter (ホスト全体メトリクス) および Process Exporter (プロセス別メトリクス)
+- **fluentBit** - Fluent Bit ログ収集エージェント (設定ファイルを外部から注入)
 
 ## Quick Start
 
-### 1. Add to your `flake.nix`
+### 1. `flake.nix` に追加
 
 ```nix
 {
@@ -35,7 +22,7 @@ by this stack.
 }
 ```
 
-### 2. Import modules
+### 2. モジュールをインポート
 
 ```nix
 {
@@ -43,94 +30,83 @@ by this stack.
 }
 ```
 
-### 3. Basic configuration
+### 3. 基本設定
 
 ```nix
 {
   services.observability = {
-    # Exporters (Node Exporter, Process Exporter) — scraped by an external Prometheus/VMAgent
+    # Node Exporter + Process Exporter
+    # 外部の VMAgent / Victoria Metrics がこれらをスクレイプする
     monitoring = {
       enable = true;
-      nodeExporter.enable = true;     # host-wide metrics (port 9100)
-      processExporter.enable = true;  # per-process metrics (port 9256)
+      nodeExporter.enable = true;     # ホスト全体メトリクス (port 9100)
+      processExporter.enable = true;  # プロセス別メトリクス (port 9256)
     };
 
-    # Alertmanager with your alert rules
-    alertmanager = {
-      enable = true;
-      discord.webhookUrlFile = "/path/to/discord/webhook";
-      alertRules = import ./my-alert-rules.nix;  # Your custom alert rules
-    };
-
-    # Loki for log aggregation
-    loki = {
-      enable = true;
-      retentionDays = 30;
-      rulesFile = inputs.nixos-observability.assets.lokiRules;
-    };
-
-    # Fluent Bit for log collection
+    # Fluent Bit ログ転送エージェント
+    # 設定ファイルは dotfiles 側から注入する (policy-free)
     fluentBit = {
       enable = true;
-      configFile = ./fluent-bit.conf;  # Your custom config
+      configFile = ./fluent-bit.conf;
     };
   };
 }
 ```
 
-## Documentation
-
-- [Getting Started](docs/getting-started.md)
-- [Configuration Reference](docs/configuration.md)
-
-## Examples
-
-See [examples/](examples/) directory for complete configuration examples.
-
 ## Modules
 
-All modules are fully functional and ready for production use:
+### monitoring
 
-- ✅ **monitoring** - Node Exporter, Process Exporter
-- ✅ **alertmanager** - Alert management with Discord notifications
-- ✅ **loki** - Log aggregation and search
-- ✅ **fluentBit** - Lightweight log collection agent
+Node Exporter と Process Exporter を管理するモジュール。
+
+| option | 型 | デフォルト | 説明 |
+|--------|----|------------|------|
+| `monitoring.enable` | bool | false | モジュール全体の有効化 |
+| `monitoring.nodeExporter.enable` | bool | true | Node Exporter を有効化 |
+| `monitoring.nodeExporter.port` | port | 9100 | Node Exporter がリッスンするポート |
+| `monitoring.nodeExporter.enabledCollectors` | list | (省略) | 有効にするコレクター一覧 |
+| `monitoring.nodeExporter.extraFlags` | list | (省略) | Node Exporter への追加フラグ |
+| `monitoring.processExporter.enable` | bool | false | Process Exporter を有効化 (opt-in) |
+| `monitoring.processExporter.port` | port | 9256 | Process Exporter がリッスンするポート |
+| `monitoring.processExporter.processNames` | list | (省略) | プロセス集約ルール (`process_names`) |
+| `monitoring.openFirewall` | bool | true | 有効な exporter のポートをファイアウォールで開放 |
+
+`nodeExporter` と `processExporter` は独立して有効化できる。
+すでに Node Exporter を別途直接設定しているホストは
+`nodeExporter.enable = false` として `processExporter` だけ利用可能。
+
+### fluentBit
+
+Fluent Bit ログ収集エージェントを管理するモジュール。
+
+| option | 型 | デフォルト | 説明 |
+|--------|----|------------|------|
+| `fluentBit.enable` | bool | false | モジュール全体の有効化 |
+| `fluentBit.configFile` | path | (必須) | Fluent Bit 設定ファイルのパス |
+| `fluentBit.package` | package | `pkgs.fluent-bit` | 使用する Fluent Bit パッケージ |
+| `fluentBit.port` | port | 2020 | Fluent Bit HTTP メトリクスサーバーのポート |
+| `fluentBit.dataDir` | str | `/var/lib/fluent-bit` | データ保存ディレクトリ |
+| `fluentBit.extraPackages` | list | [] | Fluent Bit から利用可能にする追加パッケージ |
+| `fluentBit.openFirewall` | bool | false | Fluent Bit ポートをファイアウォールで開放 |
+| `fluentBit.firewallPorts` | list | [] | 追加で開放する UDP/TCP ポート (syslog 等) |
+
+設定ファイル (`configFile`) は nixos-observability 側では提供しない。
+dotfiles 側で Fluent Bit ネイティブ形式の設定ファイルを用意して注入する。
 
 ## Architecture
 
-This project follows a **policy-free** design:
+**policy-free 設計**: このリポジトリはモジュール（ツールの起動・設定インタフェース）のみを提供し、
+アラートルール・ダッシュボード・ログ処理パイプラインなどのポリシーは
+`nixos-observability-config` または各ホストの dotfiles 側で注入する。
 
-- **Modules provide tools** - nixos-observability provides NixOS modules for observability tools
-- **You define policy** - Alert rules, dashboards, and log processing configs are injected from your dotfiles
-- **Maximum flexibility** - Use only what you need, configure as you want
-
-### Example: Alert Rules
-
-Alert rules are **not** included in nixos-observability. You define them in your dotfiles:
-
-```nix
-# your-dotfiles/observability-config/alert-rules.nix
-[
-  {
-    name = "system";
-    interval = "30s";
-    rules = [
-      {
-        alert = "InstanceDown";
-        expr = "up == 0";
-        for = "2m";
-        labels.severity = "critical";
-      }
-    ];
-  }
-]
+```
+dotfiles (host config)
+  └─ imports nixos-observability.nixosModules.default
+       ├─ monitoring: Node Exporter / Process Exporter を起動
+       └─ fluentBit:  設定ファイルを受け取り fluent-bit.service を起動
 ```
 
-Then inject them via options:
-
-```nix
-services.observability.alertmanager.alertRules = import ./observability-config/alert-rules.nix;
-```
+メトリクスのスクレイプ・保存・アラート評価は k3s クラスタ上の外部スタックが担う。
 
 ## License
 
