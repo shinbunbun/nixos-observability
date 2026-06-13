@@ -133,7 +133,41 @@ in
         SupplementaryGroups = [ "systemd-journal" ];
 
         # 特権ポート（<1024）へのバインド許可
+        # syslog input が privileged port (RouterOS: 514/udp) を listen するため
+        # CAP_NET_BIND_SERVICE を Ambient で付与する。
         AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
+
+        # systemd hardening
+        # AmbientCapabilities で付与したケーパビリティに対する bounding set を
+        # 同一集合に絞り、それ以外のケーパビリティ取得を禁止する (対称化)。
+        # NoNewPrivileges で exec によるケーパビリティ/特権昇格を遮断する。
+        CapabilityBoundingSet = [ "CAP_NET_BIND_SERVICE" ];
+        NoNewPrivileges = true;
+
+        # ファイルシステム保護
+        # ProtectSystem = "strict" は / 全体を read-only にする (/dev /proc /sys 除く)。
+        # StateDirectory (cfg.dataDir) への書き込みのみ ReadWritePaths で許可する。
+        # systemd-journal の読み取り (/var/log/journal, /run/log/journal) は
+        # read アクセスのため strict でも塞がれない。fluent-bit が書き込むのは
+        # cfg.dataDir (= storage.path のファイルシステムバッファ、macOS では
+        # storage DB も同配下) のみで、これは StateDirectory として確保される。
+        # よって ReadWritePaths に dataDir を含めれば書き込みは過不足なく許可される。
+        ProtectSystem = "strict";
+        ReadWritePaths = [ cfg.dataDir ];
+        ProtectHome = true;
+        PrivateTmp = true;
+        ProtectKernelTunables = true;
+        ProtectKernelModules = true;
+        ProtectControlGroups = true;
+        # ネットワーク (Loki/Vector への TCP、RouterOS syslog の UDP) と
+        # systemd-journal アクセス (AF_UNIX/AF_NETLINK) に必要な
+        # アドレスファミリのみ許可する。
+        RestrictAddressFamilies = [
+          "AF_UNIX"
+          "AF_NETLINK"
+          "AF_INET"
+          "AF_INET6"
+        ];
 
         # リソース制限
         MemoryMax = "512M";
